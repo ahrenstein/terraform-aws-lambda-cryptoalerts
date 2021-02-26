@@ -1,0 +1,5 @@
+# CODEOWNERS for Terraform Module - AWS Cryptocurrency Alerts Lambda
+
+# Catch all for unspecified items
+# This is listed first as CODEOWNERS is chained bottom to top
+* @ahrenstein

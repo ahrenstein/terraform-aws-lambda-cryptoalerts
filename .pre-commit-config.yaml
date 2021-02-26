@@ -1,0 +1,22 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v3.3.0
+    hooks:
+      - id: end-of-file-fixer
+      - id: check-added-large-files
+  - repo: git://github.com/antonbabenko/pre-commit-terraform
+    rev: v1.45.0
+    hooks:
+      - id: terraform_fmt
+  - repo: local
+    hooks:
+      - id: pylint
+        name: pylint
+        entry: pylint
+        language: system
+        types: [python]
+        exclude: function-code/__pycache__|function-code/_distutils_hack|function-code/certifi|function-code/certifi-2020.12.5.dist-info|function-code/chardet|function-code/chardet-4.0.0.dist-info|function-code/discord_webhook|function-code/discord_webhook-0.11.0.dist-info|function-code/idna|function-code/idna-2.10.dist-info|function-code/pip|function-code/pip-21.0.1.dist-info|function-code/pkg_resources|function-code/pycoingecko|function-code/pycoingecko-1.4.0.dist-info|function-code/requests|function-code/requests-2.25.1.dist-info|function-code/setuptools|function-code/setuptools-52.0.0.dist-info|function-code/tests|function-code/urllib3|function-code/urllib3-1.26.3.dist-info|function-code/wheel|function-code/wheel-0.36.2.dist-info
+        args:
+          - --ignore-imports=yes
+          - --fail-under=9
+          - --disable=E0401

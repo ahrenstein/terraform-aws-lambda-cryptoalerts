@@ -28,13 +28,13 @@ variable "minimum_value" {
 variable "coinbase_api_key" {
   type        = string
   description = "OPTIONAL: The Coinbase API key if you prefer to use Coinbase over CoinGecko"
-  default     = "COINGECKO"
+  default     = ""
 }
 
 variable "coinbase_api_secret" {
   type        = string
   description = "OPTIONAL: The Coinbase API secret if you prefer to use Coinbase over CoinGecko"
-  default     = "COINGECKO"
+  default     = ""
 }
 
 variable "discord_webhook_url" {

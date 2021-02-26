@@ -67,14 +67,14 @@ def lambda_handler(event, context):
     # Importing environment variables from AWS Lambda
     cryptocurrency = os.environ['CRYPTOCURRENCY']
     alert_price = os.environ['ALERT_PRICE']
-    coinbase_api_key = os.environ.get('COINBASE_API_KEY', None)
-    coinbase_api_secret = os.environ.get('COINBASE_API_SECRET', None)
+    coinbase_api_key = os.environ.get('COINBASE_API_KEY', "")
+    coinbase_api_secret = os.environ.get('COINBASE_API_SECRET', "")
     discord_webhook_url = os.environ['DISCORD_WEBHOOK_URL']
     # Instantiate variables to use for alerting logic
     current_price = None
     api_used = None
     # Select and execute correct price checker
-    if coinbase_api_key is None:
+    if coinbase_api_key == "":
         api_used = "CoinGecko"
         current_price = coingecko_price_check(cryptocurrency)
     else:

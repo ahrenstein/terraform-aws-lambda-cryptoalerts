@@ -52,7 +52,6 @@ class CoinbaseWalletAuth(AuthBase):
         return request
 
 
-# AWS Lambda handler that will trigger on run
 def lambda_handler(event, context):
     """The standard AWS lambda_handler
 
@@ -73,45 +72,46 @@ def lambda_handler(event, context):
     # Instantiate variables to use for alerting logic
     current_price = None
     api_used = None
-    # Select and execute correct price checker
-    if coinbase_api_key == "":
-        api_used = "CoinGecko"
-        current_price = coingecko_price_check(cryptocurrency)
+    if cryptocurrency == "GASFEES":
+        print("DEBUGGING:\n Checking gas only")
+        discord_message = "Accordng to **GAS NOW** a **fast** transaction" \
+                          " currently costs **%s**" % gas_fee_check()
+        post_discord_message(discord_webhook_url, discord_message)
     else:
-        api_used = "Coinbase"
-        current_price = coinbase_price_check(coinbase_api_key,
-                                             coinbase_api_secret, cryptocurrency)
-    # Alerting
-    if current_price < float(alert_price):
-        post_discord_message(discord_webhook_url, cryptocurrency,
-                             current_price, alert_price, api_used)
-        print("DEBUGGING:\nBelow Minimum")
-        print("API: %s\ncoin: %s\ncoin_current_price: %s\nminimum_price:"
-              " %s" % (api_used, cryptocurrency, current_price, alert_price))
-    else:
-        print("DEBUGGING:\nAbove Minimum")
-        print("API: %s\ncoin: %s\ncoin_current_price: %s\nminimum_price:"
-              " %s" % (api_used, cryptocurrency, current_price, alert_price))
+        # Select and execute correct price checker
+        if coinbase_api_key == "":
+            api_used = "CoinGecko"
+            current_price = coingecko_price_check(cryptocurrency)
+        else:
+            api_used = "Coinbase"
+            current_price = coinbase_price_check(coinbase_api_key,
+                                                 coinbase_api_secret, cryptocurrency)
+        # Alerting
+        if current_price < float(alert_price):
+            discord_message = "According to **%s**, **%s** has dropped" \
+                              " below **%s** and is currently at **%s**!"\
+                              % (api_used, cryptocurrency, alert_price, current_price)
+            post_discord_message(discord_webhook_url, discord_message)
+            print("DEBUGGING:\nBelow Minimum")
+            print("API: %s\ncoin: %s\ncoin_current_price: %s\nminimum_price:"
+                  " %s" % (api_used, cryptocurrency, current_price, alert_price))
+        else:
+            print("DEBUGGING:\nAbove Minimum")
+            print("API: %s\ncoin: %s\ncoin_current_price: %s\nminimum_price:"
+                  " %s" % (api_used, cryptocurrency, current_price, alert_price))
 
 
-# Post an alert to Discord
-def post_discord_message(discord_webhook_url, coin, current_price, minimum_price, source):
-    """Post a message to Discord about a coin/token below a price
+def post_discord_message(discord_webhook_url, discord_message):
+    """Post a message to Discord.
 
     Args:
         discord_webhook_url: A Discord Webhook URL
-        coin: The coin/token that's below the price we care about
-        current_price: The current price of the coin/token
-        minimum_price: The minimum price we want to alert on
-        source: A string that specifies where the price was checked
+        discord_message: The message to send
     """
-    message = "According to **%s**, **%s** has dropped below **%s** and is currently" \
-              " at **%s**!" % (source, coin, minimum_price, current_price)
-    webhook = DiscordWebhook(url=discord_webhook_url, content=message)
+    webhook = DiscordWebhook(url=discord_webhook_url, content=discord_message)
     _ = webhook.execute()
 
 
-# Check the price of a cryptocurrency against Coinbase
 def coinbase_price_check(coinbase_api_key, coinbase_api_secret,
                          coin):
     """Check the price of a cryptocurrency against Coinbase to see
@@ -134,7 +134,6 @@ def coinbase_price_check(coinbase_api_key, coinbase_api_secret,
     return coin_current_price
 
 
-# Check the price of a cryptocurrency against CoinGecko
 def coingecko_price_check(coin):
     """Check the price of a cryptocurrency against CoinGecko to see
     if it fell below the minimum price
@@ -150,3 +149,16 @@ def coingecko_price_check(coin):
     coin_current_price = float(coingecko_client.get_price
                                (ids=coin, vs_currencies="usd")[coin]['usd'])
     return coin_current_price
+
+
+def gas_fee_check():
+    """Check the price of Ethereum gas fees via GAS NOW to see
+    if fast fell below the minimum "price"
+
+    Returns:
+        fast_gwei: The fast price of gas in gwei
+    """
+    api_url = 'https://www.gasnow.org/api/v3/gas/price'
+    result = requests.get(api_url)
+    fast_gwei = int(result.json()['data']['fast'] *.000000001)
+    return fast_gwei

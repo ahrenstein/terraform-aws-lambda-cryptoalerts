@@ -53,3 +53,9 @@ variable "tags" {
   description = "OPTIONAL: You should have a group of tags such as \"CostTracking\""
   default     = {}
 }
+
+variable "name_postfix" {
+  type        = string
+  default     = "-alert"
+  description = "OPTIONAL: Change the postfix of the Lambda function name"
+}

@@ -13,7 +13,7 @@
 
 # IAM role for the crypto-alerts Lambda to assume role
 resource "aws_iam_role" "crypto_alerts_lambda" {
-  name               = "crypto-alerts-${var.cryptocurrency}-lambda"
+  name               = "crypto-${var.cryptocurrency}-${var.name_postfix}-lambda"
   assume_role_policy = <<EOF
 {
   "Version": "2012-10-17",
@@ -55,14 +55,14 @@ data "aws_iam_policy_document" "crypto_alerts_lambda_logging" {
 
 # Create the IAM policy for CloudWatch logging
 resource "aws_iam_policy" "crypto_alerts_lambda_logging" {
-  name        = "crypto-alerts-${var.cryptocurrency}-lambda-logging"
+  name        = "crypto-${var.cryptocurrency}-${var.name_postfix}-lambda-logging"
   description = "Standard CloudWatch permissions for crypto-alerts-${var.cryptocurrency}-lambda"
   policy      = data.aws_iam_policy_document.crypto_alerts_lambda_logging.json
 }
 
 # Attach the CloudWatch Logging permissions
 resource "aws_iam_policy_attachment" "crypto_alerts_lambda_logging" {
-  name       = "crypto-alerts-${var.cryptocurrency}-lambda-logging"
+  name       = "crypto-${var.cryptocurrency}-${var.name_postfix}-lambda-logging"
   roles      = [aws_iam_role.crypto_alerts_lambda.name]
   policy_arn = aws_iam_policy.crypto_alerts_lambda_logging.arn
 }

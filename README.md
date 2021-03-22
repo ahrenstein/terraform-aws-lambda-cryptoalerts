@@ -26,6 +26,7 @@ module "cryptocurrency-alert" {
   cryptocurrency          = "BTC"
   minimum_value           = 46000.00
   rate                    = 30 // Optional: The run interval in minutes (default: 5)
+  name_postfix            = "-under-46k" // Optional: Override the Lambda postfix name
   coinbase_api_key        = "XXXXX" // Optional: If you don't specify this then CoinGecko will be used 
   coinbase_api_secret     = "YYYYY" // Optional: If you don't specify this then CoinGecko will be used
   discord_webhook_url     = "https://discord.com/api/webhooks/XXXXX/YYYYYYYY" // The Discord webhook that will post the alerts
@@ -34,6 +35,12 @@ module "cryptocurrency-alert" {
   }
 }
 ```
+
+Gas Alerts
+----------
+If you set the cryptocurrency value to `GASFEES` instead of checking a cryptocurrency value,
+you will get alerts if the fast price of gas **on Ethereum** is below the `minimum_value` according to [GAS NOW](https://www.gasnow.org/).  
+GAS NOW does not care for frequent pulls so it's recommended to keep that to a rate of 3600.
 
 Testing
 -------

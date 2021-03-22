@@ -73,10 +73,14 @@ def lambda_handler(event, context):
     current_price = None
     api_used = None
     if cryptocurrency == "GASFEES":
-        print("DEBUGGING:\n Checking gas only")
-        discord_message = "Accordng to **GAS NOW** a **fast** transaction" \
-                          " currently costs **%s**" % gas_fee_check()
-        post_discord_message(discord_webhook_url, discord_message)
+        gas_price = gas_fee_check()
+        if gas_price <= alert_price:
+            print("DEBUGGING:\n Gas Below Maximum")
+            discord_message = "Accordng to **GAS NOW** a **fast** transaction" \
+                              " currently costs **%s**" % gas_price
+            post_discord_message(discord_webhook_url, discord_message)
+        else:
+            print("DEBUGGING:\n Gas Above Maximum")
     else:
         # Select and execute correct price checker
         if coinbase_api_key == "":

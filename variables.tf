@@ -48,6 +48,18 @@ variable "rate" {
   default     = 5
 }
 
+variable "dynamodb" {
+  type        = bool
+  description = "OPTIONAL: Enable using DynamoDB to track last alert time in"
+  default     = false
+}
+
+variable "alert_rate_limit" {
+  type        = number
+  description = "OPTIONAL: The rate in minutes that alerts may repeat"
+  default     = 60
+}
+
 variable "tags" {
   type        = map(string)
   description = "OPTIONAL: You should have a group of tags such as \"CostTracking\""
@@ -59,3 +71,6 @@ variable "name_postfix" {
   default     = "-alert"
   description = "OPTIONAL: Change the postfix of the Lambda function name"
 }
+
+data "aws_region" "current" {}
+data "aws_caller_identity" "current" {}

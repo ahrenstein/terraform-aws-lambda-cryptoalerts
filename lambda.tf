@@ -24,7 +24,7 @@ resource "null_resource" "pip" {
 # Create a zip of the lambda function and its dependencies
 data "archive_file" "crypto_alerts_zip" {
   type        = "zip"
-  output_path = "crypto-${var.cryptocurrency}-${var.name_postfix}.zip"
+  output_path = "crypto-${var.cryptocurrency}${var.name_postfix}.zip"
   source_dir  = "${path.module}/function-code/"
   excludes    = ["pyenv", ".idea", ".gitignore"]
 
@@ -34,7 +34,7 @@ data "archive_file" "crypto_alerts_zip" {
 # Deploy the AWS Lambda function
 resource "aws_lambda_function" "crypto_alerts" {
   filename         = data.archive_file.crypto_alerts_zip.output_path
-  function_name    = "crypto-${var.cryptocurrency}-${var.name_postfix}"
+  function_name    = "crypto-${var.cryptocurrency}${var.name_postfix}"
   role             = aws_iam_role.crypto_alerts_lambda.arn
   handler          = "crypto_alerts.lambda_handler"
   source_code_hash = data.archive_file.crypto_alerts_zip.output_base64sha256
@@ -44,11 +44,14 @@ resource "aws_lambda_function" "crypto_alerts" {
 
   environment {
     variables = {
+      BOT_NAME            = "crypto-${var.cryptocurrency}${var.name_postfix}"
       CRYPTOCURRENCY      = var.cryptocurrency
       ALERT_PRICE         = var.minimum_value
       COINBASE_API_KEY    = var.coinbase_api_key
       COINBASE_API_SECRET = var.coinbase_api_secret
       DISCORD_WEBHOOK_URL = var.discord_webhook_url
+      DYNAMO_DB           = var.dynamodb
+      ALERT_RATE_LIMIT    = var.alert_rate_limit
     }
   }
   tags = var.tags
@@ -56,7 +59,7 @@ resource "aws_lambda_function" "crypto_alerts" {
 
 # CloudWatch cron to run every X minutes
 resource "aws_cloudwatch_event_rule" "crypto_alerts_cron" {
-  name                = "crypto-${var.cryptocurrency}-${var.name_postfix}"
+  name                = "crypto-${var.cryptocurrency}${var.name_postfix}"
   description         = "Fires every ${var.rate} minutes"
   schedule_expression = "rate(${var.rate} minutes)"
 }
@@ -64,7 +67,7 @@ resource "aws_cloudwatch_event_rule" "crypto_alerts_cron" {
 # CloudWatch event target for the Lambda
 resource "aws_cloudwatch_event_target" "crypto_alerts_cron" {
   rule      = aws_cloudwatch_event_rule.crypto_alerts_cron.name
-  target_id = "crypto-${var.cryptocurrency}-${var.name_postfix}"
+  target_id = "crypto-${var.cryptocurrency}${var.name_postfix}"
   arn       = aws_lambda_function.crypto_alerts.arn
 }
 

@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
-"""Check CoinGecko for a cryptocurrency coin/token price and post it to Discord
-
-"""
+"""Check CoinGecko for a cryptocurrency coin/token price and post it to Discord"""
 #
 # Python Script:: crypto_alerts.py
 #
@@ -21,6 +19,7 @@ import time
 import hmac
 import hashlib
 import requests
+import dynamo_functions
 from requests.auth import AuthBase
 from pycoingecko import CoinGeckoAPI
 from discord_webhook import DiscordWebhook
@@ -64,8 +63,11 @@ def lambda_handler(event, context):
     print("AWS Event: %s\n"
           "AWS Context: %s" %(event, context))
     # Importing environment variables from AWS Lambda
+    bot_name = os.environ.get('BOT_NAME', "")
+    dynamodb = os.environ.get('DYNAMO_DB', False)
+    alert_rate = int(os.environ.get('ALERT_RATE_LIMIT', 60))
     cryptocurrency = os.environ['CRYPTOCURRENCY']
-    alert_price = os.environ['ALERT_PRICE']
+    alert_price = int(os.environ['ALERT_PRICE'])
     coinbase_api_key = os.environ.get('COINBASE_API_KEY', "")
     coinbase_api_secret = os.environ.get('COINBASE_API_SECRET', "")
     discord_webhook_url = os.environ['DISCORD_WEBHOOK_URL']
@@ -76,9 +78,22 @@ def lambda_handler(event, context):
         gas_price = gas_fee_check()
         if gas_price <= alert_price:
             print("DEBUGGING:\n Gas Below Maximum")
-            discord_message = "Accordng to **GAS NOW** a **fast** transaction" \
-                              " currently costs **%s**" % gas_price
-            post_discord_message(discord_webhook_url, discord_message)
+            if dynamodb is False:
+                discord_message = "According to **GAS NOW** a **fast** transaction" \
+                                  " currently costs **%s**" % gas_price
+                post_discord_message(discord_webhook_url, discord_message)
+            else:
+                # Get the last time the bot alerted
+                last_alert = dynamo_functions.get_last_alert_time(bot_name)
+                ready_to_alert = dynamo_functions.outside_alert_limit(last_alert, alert_rate)
+                if ready_to_alert is True:
+                    dynamo_functions.set_last_alert_time(bot_name)
+                    discord_message = "According to **GAS NOW** a **fast** transaction" \
+                                      " currently costs **%s**" % gas_price
+                    post_discord_message(discord_webhook_url, discord_message)
+                    dynamo_functions.set_last_alert_time(bot_name)
+                else:
+                    print("DEBUGGING: Last alert time too recent")
         else:
             print("DEBUGGING:\n Gas Above Maximum")
     else:
@@ -92,13 +107,26 @@ def lambda_handler(event, context):
                                                  coinbase_api_secret, cryptocurrency)
         # Alerting
         if current_price < float(alert_price):
-            discord_message = "According to **%s**, **%s** has dropped" \
-                              " below **%s** and is currently at **%s**!"\
-                              % (api_used, cryptocurrency, alert_price, current_price)
-            post_discord_message(discord_webhook_url, discord_message)
             print("DEBUGGING:\nBelow Minimum")
             print("API: %s\ncoin: %s\ncoin_current_price: %s\nminimum_price:"
                   " %s" % (api_used, cryptocurrency, current_price, alert_price))
+            if dynamodb is False:
+                discord_message = "According to **%s**, **%s** has dropped" \
+                                  " below **%s** and is currently at **%s**!"\
+                                  % (api_used, cryptocurrency, alert_price, current_price)
+                post_discord_message(discord_webhook_url, discord_message)
+            else:
+                last_alert = dynamo_functions.get_last_alert_time(bot_name)
+                ready_to_alert = dynamo_functions.outside_alert_limit(last_alert, alert_rate)
+                if ready_to_alert is True:
+                    discord_message = "According to **%s**, **%s** has dropped" \
+                                      " below **%s** and is currently at **%s**!" \
+                                      % (api_used, cryptocurrency, alert_price, current_price)
+                    post_discord_message(discord_webhook_url, discord_message)
+                    dynamo_functions.set_last_alert_time(bot_name)
+                else:
+                    print("DEBUGGING: Last alert time too recent")
+
         else:
             print("DEBUGGING:\nAbove Minimum")
             print("API: %s\ncoin: %s\ncoin_current_price: %s\nminimum_price:"
@@ -155,7 +183,7 @@ def coingecko_price_check(coin):
     return coin_current_price
 
 
-def gas_fee_check():
+def gas_fee_check() -> int:
     """Check the price of Ethereum gas fees via GAS NOW to see
     if fast fell below the minimum "price"
 
@@ -164,5 +192,5 @@ def gas_fee_check():
     """
     api_url = 'https://www.gasnow.org/api/v3/gas/price'
     result = requests.get(api_url)
-    fast_gwei = int(result.json()['data']['fast'] *.000000001)
+    fast_gwei = int(result.json()['data']['fast'] * .000000001)
     return fast_gwei

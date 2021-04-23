@@ -2,6 +2,11 @@ Terraform Module - AWS Cryptocurrency Alerts Lambda: Changelog
 ==============================================================
 A list of all the changes made to this repo, and the Terraform module it contains
 
+Version 1.2.0
+-------------
+
+1. Support for rate limiting alerts via a DynamoDB table (created separately)
+
 Version 1.1.0
 -------------
 

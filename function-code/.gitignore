@@ -1,0 +1,5 @@
+*
+!.gitignore
+!crypto_alerts.py
+!requirements.txt
+!dynamo_functions.py

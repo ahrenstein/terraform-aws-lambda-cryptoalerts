@@ -24,12 +24,13 @@ The following variables are required.
 module "cryptocurrency-alert" {
   source                  = "git::https://github.com/ahrenstein/terraform-aws-lambda-cryptoalerts"
   cryptocurrency          = "BTC"
-  minimum_value           = 46000.00
+  target_price            = 46000.00
+  crossing_up             = true //Optional: Alert if coin is above current price (default: false)
   rate                    = 10 // Optional: The run interval in minutes (default: 5)
   name_postfix            = "-under-46k" // Optional: Override the Lambda postfix name
   coinbase_api_key        = "XXXXX" // Optional: If you don't specify this then CoinGecko will be used 
   coinbase_api_secret     = "YYYYY" // Optional: If you don't specify this then CoinGecko will be used
-  dynamodb         = true // Optional: Use DynamoDB to enable alert rate liming (default: false)
+  dynamodb                = true // Optional: Use DynamoDB to enable alert rate liming (default: false)
   alert_rate_limit        = 30 // Optional: Rate limit in minutes before an alert can trigger again since the last one (default: 60)
   discord_webhook_url     = "https://discord.com/api/webhooks/XXXXX/YYYYYYYY" // The Discord webhook that will post the alerts
   tags = { // These values are optional

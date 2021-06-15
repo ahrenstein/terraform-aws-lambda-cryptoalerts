@@ -46,7 +46,8 @@ resource "aws_lambda_function" "crypto_alerts" {
     variables = {
       BOT_NAME            = "crypto-${var.cryptocurrency}${var.name_postfix}"
       CRYPTOCURRENCY      = var.cryptocurrency
-      ALERT_PRICE         = var.minimum_value
+      ALERT_PRICE         = var.target_price
+      CROSSING_UP         = var.crossing_up
       COINBASE_API_KEY    = var.coinbase_api_key
       COINBASE_API_SECRET = var.coinbase_api_secret
       DISCORD_WEBHOOK_URL = var.discord_webhook_url

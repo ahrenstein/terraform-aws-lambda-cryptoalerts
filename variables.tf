@@ -20,9 +20,15 @@ variable "cryptocurrency" {
   description = "REQUIRED: The name of a cryptocurrency that CoinGecko tracks"
 }
 
-variable "minimum_value" {
+variable "target_price" {
   type        = number
-  description = "REQUIRED: The minimum acceptable price in USD you wish to alert on"
+  description = "REQUIRED: The target price in USD you wish to alert on"
+}
+
+variable "crossing_up" {
+  type        = bool
+  description = "OPTIONAL: Check if the current price is above the target instead of below"
+  default     = false
 }
 
 variable "coinbase_api_key" {

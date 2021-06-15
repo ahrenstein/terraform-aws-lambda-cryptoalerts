@@ -7,6 +7,6 @@ Version 2.0.0
 
 1. Move `discord_webhook_url`, `coinbase_api_key`, and `coinbase_api_secret` to AWS Secrets. This would make deploys more manual, but they are credentials
 and should be protected better.
-2. Slack Webhook support (maybe if demand for it exists)
+2. Refactor Python code to be better structured.
 
 Return to [README](README.md)

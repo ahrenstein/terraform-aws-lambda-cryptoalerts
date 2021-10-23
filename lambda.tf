@@ -50,6 +50,7 @@ resource "aws_lambda_function" "crypto_alerts" {
       CROSSING_UP         = var.crossing_up
       COINBASE_API_KEY    = var.coinbase_api_key
       COINBASE_API_SECRET = var.coinbase_api_secret
+      BLOCKNATIVE_API_KEY = var.blocknative_apy_key
       DISCORD_WEBHOOK_URL = var.discord_webhook_url
       DYNAMO_DB           = var.dynamodb
       ALERT_RATE_LIMIT    = var.alert_rate_limit

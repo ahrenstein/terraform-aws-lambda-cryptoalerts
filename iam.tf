@@ -22,8 +22,7 @@ resource "aws_iam_role" "crypto_alerts_lambda" {
       "Action": "sts:AssumeRole",
       "Principal": {
         "Service": [
-          "lambda.amazonaws.com",
-          "edgelambda.amazonaws.com"
+          "lambda.amazonaws.com"
         ]
       },
       "Effect": "Allow",

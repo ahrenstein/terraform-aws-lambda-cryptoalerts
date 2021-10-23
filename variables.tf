@@ -43,6 +43,12 @@ variable "coinbase_api_secret" {
   default     = ""
 }
 
+variable "blocknative_apy_key" {
+  type        = string
+  description = "OPTIONAL: The Blocknative API key for gas price checking"
+  default     = ""
+}
+
 variable "discord_webhook_url" {
   type        = string
   description = "REQUIRED: The Discord server webhook URL you will post messages to"

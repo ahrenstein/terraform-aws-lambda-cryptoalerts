@@ -71,12 +71,10 @@ def lambda_handler(event, context):
     crossing_up = os.environ.get('CROSSING_UP', False)
     coinbase_api_key = os.environ.get('COINBASE_API_KEY', "")
     coinbase_api_secret = os.environ.get('COINBASE_API_SECRET', "")
+    blocknative_api_key = os.environ.get("BLOCKNATIVE_API_KEY", "")
     discord_webhook_url = os.environ['DISCORD_WEBHOOK_URL']
-    # Instantiate variables to use for alerting logic
-    current_price = None
-    api_used = None
     if cryptocurrency == "GASFEES":
-        gas_price = gas_fee_check()
+        gas_price = gas_fee_check(blocknative_api_key)
         gas_alerting(gas_price, alert_price, discord_webhook_url,
                      dynamodb, bot_name, alert_rate, crossing_up)
     else:
@@ -134,17 +132,21 @@ def coingecko_price_check(coin):
     return coin_current_price
 
 
-def gas_fee_check() -> int:
-    """Check the price of Ethereum gas fees via GAS NOW to see
-    if fast fell below the minimum "price"
+def gas_fee_check(api_key: str) -> float:
+    """Check the price of Ethereum gas fees via Blocknative to see
+    if Basefee fell below the minimum "price"
 
+    Args:
+        api_key: The Blocknative API key
     Returns:
-        fast_gwei: The fast price of gas in gwei
+        basefee: The basefee of gas in gwei
     """
-    api_url = 'https://www.gasnow.org/api/v3/gas/price'
-    result = requests.get(api_url)
-    fast_gwei = int(result.json()['data']['fast'] * .000000001)
-    return fast_gwei
+    api_url = 'https://api.blocknative.com/gasprices/blockprices'
+    request_headers = {"Authorization": api_key}
+    result = requests.get(api_url, headers=request_headers).json()
+    for block in result["blockPrices"]:
+        basefee = block['baseFeePerGas']
+    return float(basefee)
 
 
 def gas_alerting(gas_price, alert_price, discord_webhook_url, dynamodb,
@@ -162,9 +164,9 @@ def gas_alerting(gas_price, alert_price, discord_webhook_url, dynamodb,
     """
     if crossing_up == "false":
         if gas_price <= alert_price:
-            print("DEBUGGING:\n Gas Below Maximum")
+            print("DEBUGGING:\n Gas Below Maximum %s " % gas_price)
             if dynamodb is False:
-                discord_message = "According to **GAS NOW** a **fast** transaction" \
+                discord_message = "According to **Blocknative** the *basefee**" \
                                   " currently costs **%s**" % gas_price
                 post_discord_message(discord_webhook_url, discord_message)
             else:
@@ -173,19 +175,19 @@ def gas_alerting(gas_price, alert_price, discord_webhook_url, dynamodb,
                 ready_to_alert = dynamo_functions.outside_alert_limit(last_alert, alert_rate)
                 if ready_to_alert is True:
                     dynamo_functions.set_last_alert_time(bot_name)
-                    discord_message = "According to **GAS NOW** a **fast** transaction" \
+                    discord_message = "According to **Blocknative** the *basefee**" \
                                       " currently costs **%s**" % gas_price
                     post_discord_message(discord_webhook_url, discord_message)
                     dynamo_functions.set_last_alert_time(bot_name)
                 else:
                     print("DEBUGGING: Last alert time too recent")
         else:
-            print("DEBUGGING:\n Gas Above Maximum")
+            print("DEBUGGING:\n Gas Above Maximum %s " % gas_price)
     else:
         if gas_price >= alert_price:
-            print("DEBUGGING:\n Gas Above Minimum")
+            print("DEBUGGING:\n Gas Above Minimum %s " % gas_price)
             if dynamodb is False:
-                discord_message = "According to **GAS NOW** a **fast** transaction" \
+                discord_message = "According to **Blocknative** the *basefee**" \
                                   " currently costs **%s**" % gas_price
                 post_discord_message(discord_webhook_url, discord_message)
             else:
@@ -194,14 +196,14 @@ def gas_alerting(gas_price, alert_price, discord_webhook_url, dynamodb,
                 ready_to_alert = dynamo_functions.outside_alert_limit(last_alert, alert_rate)
                 if ready_to_alert is True:
                     dynamo_functions.set_last_alert_time(bot_name)
-                    discord_message = "According to **GAS NOW** a **fast** transaction" \
+                    discord_message = "According to **Blocknative** the *basefee**" \
                                       " currently costs **%s**" % gas_price
                     post_discord_message(discord_webhook_url, discord_message)
                     dynamo_functions.set_last_alert_time(bot_name)
                 else:
                     print("DEBUGGING: Last alert time too recent")
         else:
-            print("DEBUGGING:\n Gas Below Minimum")
+            print("DEBUGGING:\n Gas Below Minimum %s " % gas_price)
 
 
 def crypto_alerting(cryptocurrency, alert_price, coinbase_api_key, coinbase_api_secret,

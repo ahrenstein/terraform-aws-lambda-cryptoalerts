@@ -30,6 +30,7 @@ module "cryptocurrency-alert" {
   name_postfix            = "-under-46k" // Optional: Override the Lambda postfix name
   coinbase_api_key        = "XXXXX" // Optional: If you don't specify this then CoinGecko will be used 
   coinbase_api_secret     = "YYYYY" // Optional: If you don't specify this then CoinGecko will be used
+  blocknative_apy_key     = "ZZZZZ" // Optional: If you are getting the gas fee rates, you must provide this
   dynamodb                = true // Optional: Use DynamoDB to enable alert rate liming (default: false)
   alert_rate_limit        = 30 // Optional: Rate limit in minutes before an alert can trigger again since the last one (default: 60)
   discord_webhook_url     = "https://discord.com/api/webhooks/XXXXX/YYYYYYYY" // The Discord webhook that will post the alerts

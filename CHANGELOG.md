@@ -2,6 +2,12 @@ Terraform Module - AWS Cryptocurrency Alerts Lambda: Changelog
 ==============================================================
 A list of all the changes made to this repo, and the Terraform module it contains
 
+Version 1.4.0
+-------------
+
+1. Replaced the now defunct Gas Now API with Blocknative's API for gas fee checking
+2. Language updated to reflect EIP-1559 basefee instead of "fast transaction"
+
 Version 1.3.0
 -------------
 
